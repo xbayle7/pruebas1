@@ -24,8 +24,22 @@ export class Monster {
     this.dead      = false;
     this.respawnTimer = 0;
 
+    this._nextShot = 2000;   // first shot after 2 s
+    this._shotInterval = 2400;
+
     this._img = null;
     this._loadImage();
+  }
+
+  /** Returns {x, y, vy} when firing, else null. targetY = player centre Y */
+  shoot(now, targetY) {
+    if (this.dead) return null;
+    if (now < this._nextShot) return null;
+    this._nextShot = now + this._shotInterval + (Math.random() - 0.5) * 800;
+    const cy = this.y + this.h / 2;
+    const dy = targetY - cy;
+    const vy = (dy / (Math.abs(dy) + 1)) * 2.2;
+    return { x: this.x, y: cy, vy };
   }
 
   _loadImage() {

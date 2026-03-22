@@ -15,7 +15,7 @@ export const CONFIG = {
   BULLET_HEIGHT: 4,
   BURST_SIZE:     3,    // shots per burst
   BURST_INTERVAL: 80,   // ms between shots within a burst
-  BURST_COOLDOWN: 333,  // ms before next burst (~3 bursts/s)
+  BURST_COOLDOWN: 700,  // ms before next burst (~1.4 bursts/s)
 
   // Obstacles
   OBSTACLE_WIDTH: 32,
@@ -25,10 +25,11 @@ export const CONFIG = {
   SPAWN_INTERVAL_MIN: 1200,
   DYNAMIC_OBSTACLE_CHANCE: 0.45,
 
-  // Difficulty
+  // Difficulty — speed ramps +10% every 30 s
   SPEED_BASE: 3.5,
   SPEED_MAX: 10,
-  SPEED_INCREMENT: 0.0004,
+  SPEED_RAMP_INTERVAL: 30000,  // ms between speed steps
+  SPEED_RAMP_FACTOR:   1.10,   // +10% per step
 
   // Scoring
   SCORE_PER_SECOND: 1,

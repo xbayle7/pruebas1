@@ -52,18 +52,19 @@ export class Game {
   }
 
   _initEntities() {
-    this.background = new Background(this._logicalW, this._logicalH);
-    this.player     = new Player(this._logicalH);
-    this.obstacles  = new ObstacleManager(this._logicalW, this._logicalH);
-    this.bullets    = new BulletManager();
-    this.particles  = new ParticleSystem();
-    this.score      = new ScoreManager();
-    this.gameSpeed  = CONFIG.SPEED_BASE;
-    this.difficulty = 0;
-    this.lives      = MAX_LIVES;
-    this.level      = 0;
-    this._monsterIdx = 0;
-    this.monster     = new Monster(this._logicalW, this._logicalH);
+    this.background   = new Background(this._logicalW, this._logicalH);
+    this.player       = new Player(this._logicalH);
+    this.obstacles    = new ObstacleManager(this._logicalW, this._logicalH);
+    this.bullets      = new BulletManager();
+    this.enemyBullets = [];
+    this.particles    = new ParticleSystem();
+    this.score        = new ScoreManager();
+    this.gameSpeed    = CONFIG.SPEED_BASE;
+    this.difficulty   = 0;
+    this.lives        = MAX_LIVES;
+    this.level        = 0;
+    this._monsterIdx  = 0;
+    this.monster      = new Monster(this._logicalW, this._logicalH);
   }
 
   _bindInput() {
@@ -149,10 +150,11 @@ export class Game {
   }
 
   _update(dt) {
-    // Difficulty ramp
+    // Difficulty ramp: +10% every 30 s
+    const steps = Math.floor(this._time / CONFIG.SPEED_RAMP_INTERVAL);
     this.gameSpeed = Math.min(
       CONFIG.SPEED_MAX,
-      CONFIG.SPEED_BASE + this._time * CONFIG.SPEED_INCREMENT
+      CONFIG.SPEED_BASE * Math.pow(CONFIG.SPEED_RAMP_FACTOR, steps)
     );
     this.difficulty = (this.gameSpeed - CONFIG.SPEED_BASE) / (CONFIG.SPEED_MAX - CONFIG.SPEED_BASE);
 
@@ -202,6 +204,34 @@ export class Game {
         }
       }
     }
+
+    // Monster shoots enemy bullets
+    {
+      const playerCY = this.player.y + this.player.height / 2;
+      const shot = this.monster.shoot(this._time, playerCY);
+      if (shot) {
+        this.enemyBullets.push({ x: shot.x, y: shot.y, vy: shot.vy, alive: true });
+        this._audio.sfxEnemyShoot();
+      }
+    }
+
+    // Update enemy bullets & check collision with player
+    for (const eb of this.enemyBullets) {
+      eb.x -= 8;
+      eb.y += eb.vy;
+      if (eb.x < -20) { eb.alive = false; continue; }
+
+      if (!this.player.isInvincible()) {
+        const pb = this.player.getBounds();
+        const bx = eb.x - 8, by = eb.y - 3;
+        if (bx < pb.x + pb.w && bx + 16 > pb.x &&
+            by < pb.y + pb.h && by + 6  > pb.y) {
+          eb.alive = false;
+          this._takeDamage();
+        }
+      }
+    }
+    this.enemyBullets = this.enemyBullets.filter(eb => eb.alive);
 
     // Monster touches player → damage
     if (!this.player.isInvincible() && !this.monster.dead) {
@@ -324,6 +354,23 @@ export class Game {
     ctx.fillRect(0, fy - 20, w, 24);
   }
 
+  _drawEnemyBullets(ctx) {
+    for (const eb of this.enemyBullets) {
+      ctx.save();
+      const g = ctx.createLinearGradient(eb.x - 16, eb.y, eb.x, eb.y);
+      g.addColorStop(0,   'rgba(255,20,80,0)');
+      g.addColorStop(0.4, 'rgba(255,80,30,0.85)');
+      g.addColorStop(1,   'rgba(255,220,60,1)');
+      ctx.fillStyle = g;
+      ctx.shadowColor = 'rgba(255,60,20,0.9)';
+      ctx.shadowBlur  = 8;
+      ctx.beginPath();
+      ctx.ellipse(eb.x - 8, eb.y, 10, 3.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
   _draw() {
     const ctx = this.ctx;
     const w   = this._logicalW;
@@ -334,6 +381,7 @@ export class Game {
     this.background.draw(ctx, this._time);
     this.obstacles.draw(ctx, this._time);
     this.bullets.draw(ctx);
+    this._drawEnemyBullets(ctx);
     this.particles.draw(ctx);
     this.monster.draw(ctx);
     this.player.draw(ctx);

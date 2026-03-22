@@ -15,17 +15,21 @@ function showScreen(id) {
 
 function startGame() {
   showScreen('game-screen');
-  if (game) game.stop();
-  game = new Game(canvas, input);
+  if (!game) {
+    game = new Game(canvas, input);
+  }
   game.start();
+}
+
+function goMenu() {
+  if (game) game.stop();
+  showScreen('menu-screen');
 }
 
 // ── Button wiring ──────────────────────────────────────────
 document.getElementById('btn-start').addEventListener('click', startGame);
-
 document.getElementById('btn-restart').addEventListener('click', startGame);
+document.getElementById('btn-menu').addEventListener('click', goMenu);
 
-document.getElementById('btn-menu').addEventListener('click', () => {
-  if (game) game.stop();
-  showScreen('menu-screen');
-});
+// Pause overlay menu button
+document.getElementById('btn-pause-menu').addEventListener('click', goMenu);

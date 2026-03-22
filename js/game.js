@@ -6,6 +6,7 @@ import { ParticleSystem } from './particles.js';
 import { Background } from './background.js';
 import { ScoreManager } from './score.js';
 import { Renderer } from './renderer.js';
+import { AudioManager } from './audio.js';
 import { checkBulletObstacle, checkPlayerObstacle } from './collision.js';
 
 export class Game {
@@ -14,17 +15,18 @@ export class Game {
     this.ctx = canvas.getContext('2d');
     this.input = input;
 
-    this.scoreEl = document.getElementById('score-value');
+    this.scoreEl  = document.getElementById('score-value');
     this.statusEl = document.getElementById('status-display');
 
     this._resize();
     window.addEventListener('resize', () => this._resize());
 
     this.renderer = new Renderer(this.ctx);
-    this._state = 'idle';
-    this._rafId = null;
+    this._audio   = new AudioManager();
+    this._state   = 'idle';
+    this._rafId   = null;
     this._lastTime = 0;
-    this._time = 0;
+    this._time    = 0;
 
     this._initEntities();
     this._bindInput();
@@ -43,13 +45,13 @@ export class Game {
 
   _initEntities() {
     this.background = new Background(this._logicalW, this._logicalH);
-    this.player = new Player(this._logicalH);
-    this.obstacles = new ObstacleManager(this._logicalW, this._logicalH);
-    this.bullets = new BulletManager();
-    this.particles = new ParticleSystem();
-    this.score = new ScoreManager();
-    this.gameSpeed = CONFIG.SPEED_BASE;
-    this.difficulty = 0;  // 0–1 scale used to ramp up settings
+    this.player     = new Player(this._logicalH);
+    this.obstacles  = new ObstacleManager(this._logicalW, this._logicalH);
+    this.bullets    = new BulletManager();
+    this.particles  = new ParticleSystem();
+    this.score      = new ScoreManager();
+    this.gameSpeed  = CONFIG.SPEED_BASE;
+    this.difficulty = 0;
   }
 
   _bindInput() {
@@ -60,31 +62,66 @@ export class Game {
     this.input.onShoot(() => {
       if (this._state !== 'running') return;
       const pos = this.player.shoot(this._time);
-      if (pos) {
-        this.bullets.spawn(pos.x, pos.y);
-      }
+      if (pos) this.bullets.spawn(pos.x, pos.y);
+    });
+
+    this.input.onPause(() => {
+      if (this._state === 'running') this._pause();
+      else if (this._state === 'paused') this._resume();
     });
   }
 
   start() {
     this._initEntities();
     this._state = 'running';
+    this._time  = 0;
     this.scoreEl.textContent = '0';
-    this.statusEl.className = 'status-alive';
+    this.statusEl.className  = 'status-alive';
     this.statusEl.textContent = 'ALIVE';
+
+    this._hidePauseOverlay();
+
+    if (this._rafId) cancelAnimationFrame(this._rafId);
     this._lastTime = performance.now();
+    this._audio.start();
     this._loop(this._lastTime);
   }
 
   stop() {
     if (this._rafId) cancelAnimationFrame(this._rafId);
     this._rafId = null;
+    this._audio.stop();
+  }
+
+  _pause() {
+    this._state = 'paused';
+    this._audio.pause();
+    this._showPauseOverlay();
+  }
+
+  _resume() {
+    this._state = 'running';
+    this._audio.resume();
+    this._hidePauseOverlay();
+    this._lastTime = performance.now();
+    this._loop(this._lastTime);
+  }
+
+  _showPauseOverlay() {
+    const el = document.getElementById('pause-overlay');
+    if (el) el.classList.add('active');
+  }
+
+  _hidePauseOverlay() {
+    const el = document.getElementById('pause-overlay');
+    if (el) el.classList.remove('active');
   }
 
   _loop(ts) {
+    if (this._state === 'paused') return; // stop RAF while paused
     this._rafId = requestAnimationFrame(t => this._loop(t));
 
-    const dt = Math.min(ts - this._lastTime, 50);  // cap at 50ms to avoid spiral
+    const dt = Math.min(ts - this._lastTime, 50);
     this._lastTime = ts;
     this._time += dt;
 
@@ -125,7 +162,7 @@ export class Game {
     // Remove fully destroyed obstacles
     this.obstacles.obstacles = this.obstacles.obstacles.filter(o => !o.isFullyGone());
 
-    // Player vs obstacle
+    // Player vs obstacle → auto-restart
     if (checkPlayerObstacle(this.player, this.obstacles.obstacles)) {
       this._triggerDeath();
     }
@@ -137,7 +174,8 @@ export class Game {
   _triggerDeath() {
     this.player.die();
     this._state = 'dead';
-    this.statusEl.className = 'status-dead';
+    this._audio.pause();
+    this.statusEl.className  = 'status-dead';
     this.statusEl.textContent = 'DEAD';
     this.particles.emit(
       this.player.x + this.player.width / 2,
@@ -147,27 +185,15 @@ export class Game {
     this.renderer.flash('#ff2244', 0.7);
     this.score.saveBest();
 
-    // Short delay then show game over
-    setTimeout(() => this._showGameOver(), 1200);
-  }
-
-  _showGameOver() {
-    this.stop();
-    document.getElementById('final-score').textContent = this.score.score;
-    document.getElementById('final-time').textContent = Math.floor(this.score.elapsed) + 's';
-    document.getElementById('final-destroyed').textContent = this.score.destroyed;
-    document.getElementById('best-score').textContent = this.score.best;
-
-    document.getElementById('game-screen').classList.remove('active');
-    document.getElementById('gameover-screen').classList.add('active');
+    // Auto-restart after brief death animation
+    setTimeout(() => this.start(), 1500);
   }
 
   _draw() {
     const ctx = this.ctx;
-    const w = this._logicalW;
-    const h = this._logicalH;
+    const w   = this._logicalW;
+    const h   = this._logicalH;
 
-    // Re-apply scale after potential resize
     ctx.setTransform(window.devicePixelRatio || 1, 0, 0, window.devicePixelRatio || 1, 0, 0);
 
     this.background.draw(ctx, this._time);
@@ -180,8 +206,16 @@ export class Game {
 
     // Death overlay
     if (this._state === 'dead') {
-      ctx.fillStyle = 'rgba(255,20,60,0.12)';
+      ctx.fillStyle = 'rgba(255,20,60,0.18)';
       ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = '#ff2244';
+      ctx.font = `bold ${Math.round(h * 0.1)}px 'Courier New', monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.globalAlpha = 0.9;
+      ctx.fillText('GAME OVER', w / 2, h / 2);
+      ctx.globalAlpha = 1;
     }
   }
 }

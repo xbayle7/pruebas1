@@ -263,11 +263,11 @@ export class Game {
     ctx.setTransform(window.devicePixelRatio || 1, 0, 0, window.devicePixelRatio || 1, 0, 0);
 
     this.background.draw(ctx, this._time);
-    this._drawFloor(ctx, w, h);
     this.obstacles.draw(ctx, this._time);
     this.bullets.draw(ctx);
     this.particles.draw(ctx);
     this.player.draw(ctx);
+    this._drawFloor(ctx, w, h);
     this.renderer.drawFlash();
     this.renderer.drawSpeedBar(ctx, this.gameSpeed, CONFIG.SPEED_MAX);
 

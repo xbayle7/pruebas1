@@ -156,8 +156,9 @@ export class Game {
     );
     this.difficulty = (this.gameSpeed - CONFIG.SPEED_BASE) / (CONFIG.SPEED_MAX - CONFIG.SPEED_BASE);
 
-    // Burst fire — runs every frame; shoot() handles burst timing
-    {
+    // Burst fire: continue current burst even if button released;
+    // new bursts only start while button is held
+    if (this.input.isShootHeld || this.player.isBursting) {
       const pos = this.player.shoot(this._time);
       if (pos) {
         this.bullets.spawn(pos.x, pos.y);

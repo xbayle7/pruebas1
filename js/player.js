@@ -64,6 +64,10 @@ export class Player {
     };
   }
 
+  get isBursting() {
+    return this._burstCount > 0 && this._burstCount < CONFIG.BURST_SIZE;
+  }
+
   /** For the on-press event: reset burst so pressing always fires a new burst immediately */
   triggerBurst(now) {
     this.lastBurst   = now - CONFIG.BURST_COOLDOWN;

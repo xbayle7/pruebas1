@@ -29,6 +29,7 @@ export class AudioManager {
     this._ctx    = null;
     this._master = null;
     this._running = false;
+    this._muted   = false;
     this._timerId = null;
     this._nextBeat = 0;
     this._mIdx = 0;
@@ -65,6 +66,16 @@ export class AudioManager {
     if (this._master) {
       this._master.gain.setTargetAtTime(0, this._ctx.currentTime, 0.05);
     }
+  }
+
+  get muted() { return this._muted; }
+
+  toggleMute() {
+    this._init();
+    this._muted = !this._muted;
+    const vol = this._muted ? 0 : 0.13;
+    this._master.gain.setTargetAtTime(vol, this._ctx.currentTime, 0.05);
+    return this._muted;
   }
 
   resume() {

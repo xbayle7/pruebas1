@@ -118,6 +118,16 @@ export class Game {
     this._loop(this._lastTime);
   }
 
+  /** Called from pause-overlay Resume button */
+  resumeFromPause() {
+    if (this._state === 'paused') this._resume();
+  }
+
+  /** Called from pause-overlay Mute button. Returns new muted state. */
+  toggleMute() {
+    return this._audio.toggleMute();
+  }
+
   _showPauseOverlay() {
     const el = document.getElementById('pause-overlay');
     if (el) el.classList.add('active');

@@ -266,6 +266,12 @@ html, body {
   font-size: 0.85rem;
   color: #666688;
   letter-spacing: 0.15em;
+  margin-bottom: 4px;
+}
+
+.pause-content .btn-primary,
+.pause-content .btn-secondary {
+  width: 200px;
 }
 
 /* ── Game Over Screen ─────────────────────────────────────── */

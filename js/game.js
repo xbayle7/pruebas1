@@ -170,7 +170,7 @@ export class Game {
     }
 
     // Monster update & bullet collision
-    this.monster.update(dt, this.player.y, this.gameSpeed);
+    this.monster.update(dt);
     for (const b of this.bullets.bullets) {
       if (!b.alive) continue;
       const bb = b.getBounds();

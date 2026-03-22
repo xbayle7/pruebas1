@@ -59,17 +59,21 @@ html, body {
   align-items: center;
 }
 
-.game-title {
-  font-size: clamp(2.5rem, 8vw, 5rem);
-  color: var(--primary);
-  text-shadow: 0 0 20px var(--primary), 0 0 40px var(--primary);
-  letter-spacing: 0.15em;
-  animation: pulse-glow 2s ease-in-out infinite;
+.logo-wrap {
+  width: min(420px, 90vw);
+  animation: logo-float 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 18px rgba(0, 212, 255, 0.55));
 }
 
-@keyframes pulse-glow {
-  0%, 100% { text-shadow: 0 0 20px var(--primary), 0 0 40px var(--primary); }
-  50% { text-shadow: 0 0 30px var(--primary), 0 0 60px var(--primary), 0 0 80px var(--primary); }
+.logo-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+@keyframes logo-float {
+  0%, 100% { transform: translateY(0px);   filter: drop-shadow(0 0 18px rgba(0,212,255,0.55)); }
+  50%       { transform: translateY(-8px);  filter: drop-shadow(0 0 30px rgba(0,212,255,0.85)); }
 }
 
 .subtitle {

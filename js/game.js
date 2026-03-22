@@ -216,43 +216,49 @@ export class Game {
   _drawFloor(ctx, w, h) {
     const fh = CONFIG.FLOOR_HEIGHT;
     const fy = h - fh;
+    const t  = this._time * 0.002;
+    const pulse = 0.7 + 0.3 * Math.sin(t * 2);
 
-    // Floor fill
-    const grad = ctx.createLinearGradient(0, fy, 0, h);
-    grad.addColorStop(0,   '#0a1a2e');
-    grad.addColorStop(0.4, '#0d2040');
-    grad.addColorStop(1,   '#050f1a');
-    ctx.fillStyle = grad;
+    // Solid dark base
+    ctx.fillStyle = '#080c1a';
     ctx.fillRect(0, fy, w, fh);
 
-    // Top edge glow line
-    const t = this._time * 0.002;
-    const pulse = 0.6 + 0.4 * Math.sin(t * 2);
-    ctx.strokeStyle = `rgba(0,210,255,${pulse})`;
-    ctx.lineWidth   = 2;
+    // Metallic top strip
+    const strip = ctx.createLinearGradient(0, fy, 0, fy + 6);
+    strip.addColorStop(0, '#334466');
+    strip.addColorStop(1, '#111830');
+    ctx.fillStyle = strip;
+    ctx.fillRect(0, fy, w, 6);
+
+    // Bright neon glow line
+    ctx.shadowColor = '#00ccff';
+    ctx.shadowBlur  = 12;
+    ctx.strokeStyle = `rgba(0,220,255,${pulse})`;
+    ctx.lineWidth   = 3;
     ctx.beginPath();
-    ctx.moveTo(0, fy);
-    ctx.lineTo(w, fy);
+    ctx.moveTo(0, fy + 3);
+    ctx.lineTo(w, fy + 3);
     ctx.stroke();
+    ctx.shadowBlur = 0;
 
-    // Inner glow band
-    const glow = ctx.createLinearGradient(0, fy, 0, fy + fh * 0.5);
-    glow.addColorStop(0,   `rgba(0,200,255,${0.18 * pulse})`);
-    glow.addColorStop(1,   'rgba(0,200,255,0)');
-    ctx.fillStyle = glow;
-    ctx.fillRect(0, fy, w, fh * 0.5);
-
-    // Grid lines on floor
-    ctx.strokeStyle = `rgba(0,150,200,${0.12 * pulse})`;
+    // Scrolling grid lines
+    const spacing = 60;
+    const offset  = (this._time * (this.gameSpeed || 3.5) * 0.06) % spacing;
+    ctx.strokeStyle = 'rgba(0,160,220,0.25)';
     ctx.lineWidth   = 1;
-    const spacing = 48;
-    const offset  = (this._time * this.gameSpeed * 0.05) % spacing;
     for (let x = -offset; x < w + spacing; x += spacing) {
       ctx.beginPath();
-      ctx.moveTo(x, fy);
+      ctx.moveTo(x, fy + 6);
       ctx.lineTo(x, h);
       ctx.stroke();
     }
+
+    // Upward glow fade
+    const glow = ctx.createLinearGradient(0, fy - 20, 0, fy + 4);
+    glow.addColorStop(0, 'rgba(0,200,255,0)');
+    glow.addColorStop(1, `rgba(0,200,255,${0.22 * pulse})`);
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, fy - 20, w, 24);
   }
 
   _draw() {

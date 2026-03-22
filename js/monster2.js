@@ -1,27 +1,25 @@
 /**
- * Monster that moves in front of the ship.
- * Uses screen blending so the black photo background disappears.
- * Bullets (fired right) can hit it.
+ * Second monster using a photo with black background.
+ * Uses screen blending so the black disappears.
  */
-export class Monster {
+export class Monster2 {
   constructor(canvasW, canvasH) {
-    this.name  = 'Pau Melé';
+    this.name  = 'El Jefe';
     this.canvasW = canvasW;
     this.canvasH = canvasH;
 
     this.w = 90;
-    this.h = 120;
+    this.h = 130;  // slightly taller — portrait photo
 
-    this.maxHp = 15;
+    this.maxHp = 20;
     this.hp    = this.maxHp;
 
-    // Moves in front of the ship (right side, where bullets go)
     this.x = canvasW * 0.55;
     this.y = canvasH / 2 - this.h / 2;
 
-    this._phase  = 0;    // oscillation phase
-    this.hitTimer  = 0;
-    this.dead      = false;
+    this._phase     = 0;
+    this.hitTimer   = 0;
+    this.dead       = false;
     this.respawnTimer = 0;
 
     this._img = null;
@@ -30,7 +28,7 @@ export class Monster {
 
   _loadImage() {
     const img = new Image();
-    img.src = 'assets/monster.png';
+    img.src = 'assets/monster2.png';
     img.onload  = () => { this._img = img; };
     img.onerror = () => { this._img = null; };
   }
@@ -39,14 +37,13 @@ export class Monster {
     return { x: this.x + 8, y: this.y + 8, w: this.w - 16, h: this.h - 16 };
   }
 
-  /** Returns true if monster just died. */
   takeDamage() {
     if (this.dead) return false;
     this.hp--;
     this.hitTimer = 14;
     if (this.hp <= 0) {
       this.dead = true;
-      this.respawnTimer = 240; // ~4 s
+      this.respawnTimer = 240;
       return true;
     }
     return false;
@@ -67,17 +64,15 @@ export class Monster {
 
     if (this.hitTimer > 0) this.hitTimer--;
 
-    // Horizontal oscillation: sweeps left and right in the right half
-    const cx  = this.canvasW * 0.60;
-    const amp = this.canvasW * 0.18;
-    this.x = cx + Math.sin(this._phase * 0.7) * amp - this.w / 2;
+    // Faster horizontal sweep
+    const cx  = this.canvasW * 0.62;
+    const amp = this.canvasW * 0.20;
+    this.x = cx + Math.sin(this._phase * 0.9) * amp - this.w / 2;
 
-    // Vertical oscillation
-    const cy  = this.canvasH * 0.42;
-    const vamp = this.canvasH * 0.28;
-    this.y = cy + Math.sin(this._phase * 1.1) * vamp - this.h / 2;
+    const cy   = this.canvasH * 0.40;
+    const vamp = this.canvasH * 0.30;
+    this.y = cy + Math.sin(this._phase * 1.3) * vamp - this.h / 2;
 
-    // Clamp
     this.y = Math.max(4, Math.min(this.canvasH - this.h - 40, this.y));
     this.x = Math.max(this.canvasW * 0.3, Math.min(this.canvasW - this.w - 8, this.x));
   }
@@ -88,19 +83,16 @@ export class Monster {
     const { x, y, w, h } = this;
     ctx.save();
 
-    // Hit flash
     if (this.hitTimer > 0 && Math.floor(this.hitTimer / 2) % 2 === 0) {
       ctx.globalAlpha = 0.3;
     }
 
     if (this._img) {
-      // Screen blending removes the black background from the photo
       ctx.globalCompositeOperation = 'screen';
       ctx.drawImage(this._img, x, y, w, h);
       ctx.globalCompositeOperation = 'source-over';
     } else {
-      // Fallback while image loads
-      ctx.fillStyle = 'rgba(255,80,30,0.8)';
+      ctx.fillStyle = 'rgba(255,30,120,0.8)';
       ctx.beginPath();
       ctx.ellipse(x + w/2, y + h*0.3, w*0.35, h*0.28, 0, 0, Math.PI * 2);
       ctx.fill();

@@ -9,6 +9,7 @@ import { Renderer } from './renderer.js';
 import { AudioManager } from './audio.js';
 import { checkBulletObstacle, checkPlayerObstacle } from './collision.js';
 import { Monster } from './monster.js';
+import { Monster2 } from './monster2.js';
 
 const MAX_LIVES = 3;
 
@@ -58,7 +59,8 @@ export class Game {
     this.difficulty = 0;
     this.lives      = MAX_LIVES;
     this.level      = 0;
-    this.monster    = new Monster(this._logicalW, this._logicalH);
+    this._monsterIdx = 0;
+    this.monster     = new Monster(this._logicalW, this._logicalH);
   }
 
   _bindInput() {
@@ -194,6 +196,11 @@ export class Game {
         if (killed) {
           this.score.addDestroy();
           this.renderer.flash('#ff8800', 0.4);
+          // Swap monster on next respawn
+          this._monsterIdx = (this._monsterIdx + 1) % 2;
+          this.monster = this._monsterIdx === 0
+            ? new Monster(this._logicalW, this._logicalH)
+            : new Monster2(this._logicalW, this._logicalH);
         }
       }
     }

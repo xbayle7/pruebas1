@@ -160,19 +160,18 @@ html, body {
   text-shadow: 0 0 10px var(--primary);
 }
 
-#status-display {
+#level-display {
   font-size: clamp(0.8rem, 3vw, 1.1rem);
+  color: var(--secondary);
   letter-spacing: 0.1em;
+  text-shadow: 0 0 10px var(--secondary);
 }
 
-.status-alive {
-  color: var(--success);
-  text-shadow: 0 0 10px var(--success);
-}
-
-.status-dead {
-  color: var(--danger);
-  text-shadow: 0 0 10px var(--danger);
+#lives-display {
+  font-size: clamp(0.9rem, 3.5vw, 1.3rem);
+  color: #ff4466;
+  text-shadow: 0 0 10px #ff2244;
+  letter-spacing: 0.05em;
 }
 
 /* ── Mobile Controls ──────────────────────────────────────── */

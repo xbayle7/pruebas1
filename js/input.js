@@ -83,7 +83,8 @@ export class InputManager {
     window.addEventListener('keydown', e => {
       if (JUMP_KEYS.has(e.code)) {
         e.preventDefault();
-        if (!this.isJumpHeld) { this.isJumpHeld = true; this._fireJump(); }
+        // Fire every keydown (OS key-repeat gives multiple jumps while held — intended)
+        this._fireJump();
       }
       if (SHOOT_KEYS.has(e.code)) {
         e.preventDefault();
@@ -96,7 +97,6 @@ export class InputManager {
     });
 
     window.addEventListener('keyup', e => {
-      if (JUMP_KEYS.has(e.code))  this.isJumpHeld  = false;
       if (SHOOT_KEYS.has(e.code)) this.isShootHeld = false;
     });
   }

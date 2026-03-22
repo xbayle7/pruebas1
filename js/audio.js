@@ -81,7 +81,9 @@ export class AudioManager {
   resume() {
     if (!this._ctx) return;
     if (this._ctx.state === 'suspended') this._ctx.resume();
-    this._master.gain.setTargetAtTime(0.13, this._ctx.currentTime, 0.05);
+    if (!this._muted) {
+      this._master.gain.setTargetAtTime(0.13, this._ctx.currentTime, 0.05);
+    }
     this._running  = true;
     this._nextBeat = this._ctx.currentTime + 0.05;
     this._tick();
@@ -201,7 +203,7 @@ export class AudioManager {
 
     osc.connect(env);
     env.connect(sfxGain);
-    sfxGain.connect(this._ctx.destination);
+    sfxGain.connect(this._master);
     osc.start(t);
     osc.stop(t + 0.15);
   }
@@ -227,7 +229,7 @@ export class AudioManager {
 
     osc.connect(env);
     env.connect(sfxGain);
-    sfxGain.connect(ctx.destination);
+    sfxGain.connect(this._master);
     osc.start(t);
     osc.stop(t + 0.09);
   }
@@ -261,7 +263,7 @@ export class AudioManager {
     src.connect(filt);
     filt.connect(env);
     env.connect(sfxGain);
-    sfxGain.connect(ctx.destination);
+    sfxGain.connect(this._master);
     src.start(t);
     src.stop(t + 0.25);
 
@@ -275,7 +277,7 @@ export class AudioManager {
     thudEnv.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
     thud.connect(thudEnv);
     thudEnv.connect(sfxGain);
-    sfxGain.connect(ctx.destination);
+    sfxGain.connect(this._master);
     thud.start(t);
     thud.stop(t + 0.2);
   }
@@ -301,7 +303,7 @@ export class AudioManager {
 
     osc.connect(env);
     env.connect(sfxGain);
-    sfxGain.connect(ctx.destination);
+    sfxGain.connect(this._master);
     osc.start(t);
     osc.stop(t + 0.38);
   }
@@ -328,7 +330,7 @@ export class AudioManager {
 
       osc.connect(env);
       env.connect(sfxGain);
-      sfxGain.connect(ctx.destination);
+      sfxGain.connect(this._master);
       osc.start(nt);
       osc.stop(nt + 0.18);
     });

@@ -62,14 +62,20 @@ export class Game {
   _bindInput() {
     // Jump: single impulse per press (no continuous)
     this.input.onJump(() => {
-      if (this._state === 'running') this.player.jump();
+      if (this._state === 'running') {
+        this.player.jump();
+        this._audio.sfxJump();
+      }
     });
 
     // Shoot: fires on press; game loop also checks isShootHeld for hold-to-fire
     this.input.onShoot(() => {
       if (this._state !== 'running') return;
       const pos = this.player.shoot(this._time);
-      if (pos) this.bullets.spawn(pos.x, pos.y);
+      if (pos) {
+        this.bullets.spawn(pos.x, pos.y);
+        this._audio.sfxShoot();
+      }
     });
 
     this.input.onPause(() => {
@@ -140,7 +146,10 @@ export class Game {
     // Hold-to-shoot (no hold-to-jump — single impulse only)
     if (this.input.isShootHeld) {
       const pos = this.player.shoot(this._time);
-      if (pos) this.bullets.spawn(pos.x, pos.y);
+      if (pos) {
+        this.bullets.spawn(pos.x, pos.y);
+        this._audio.sfxShoot();
+      }
     }
 
     this.background.update(this.gameSpeed);
@@ -169,6 +178,7 @@ export class Game {
         : hit.obstacle.botY + hit.obstacle.botH / 2;
       this.particles.emit(bx, by, '#ff8844', 18);
       this.renderer.flash('#ff8844', 0.15);
+      this._audio.sfxExplosion();
     }
 
     this.obstacles.obstacles = this.obstacles.obstacles.filter(o => !o.isFullyGone());
@@ -197,10 +207,12 @@ export class Game {
       this.player.die();
       this._state = 'dead';
       this.score.saveBest();
+      this._audio.sfxGameOver();
       setTimeout(() => this.start(), 1400);
     } else {
       // Still has lives → invincible briefly, keep playing
       this.player.takeDamage();
+      this._audio.sfxDamage();
       setTimeout(() => this._audio.resume(), 300);
     }
   }

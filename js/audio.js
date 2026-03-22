@@ -167,4 +167,159 @@ export class AudioManager {
     osc.start(time);
     osc.stop(time + 0.15);
   }
+
+  // ── Sound Effects ──────────────────────────────────────────
+
+  sfxJump() {
+    this._init();
+    if (this._ctx.state === 'suspended') this._ctx.resume();
+    const ctx = this._ctx;
+    const t   = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
+    const env = ctx.createGain();
+    const sfxGain = ctx.createGain();
+    sfxGain.gain.value = 0.18;
+
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(180, t);
+    osc.frequency.exponentialRampToValueAtTime(420, t + 0.12);
+
+    env.gain.setValueAtTime(0.5, t);
+    env.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+
+    osc.connect(env);
+    env.connect(sfxGain);
+    sfxGain.connect(this._ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.15);
+  }
+
+  sfxShoot() {
+    this._init();
+    if (this._ctx.state === 'suspended') this._ctx.resume();
+    const ctx = this._ctx;
+    const t   = ctx.currentTime;
+
+    // High-pitched laser zap
+    const osc = ctx.createOscillator();
+    const env = ctx.createGain();
+    const sfxGain = ctx.createGain();
+    sfxGain.gain.value = 0.1;
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(1200, t);
+    osc.frequency.exponentialRampToValueAtTime(400, t + 0.07);
+
+    env.gain.setValueAtTime(0.6, t);
+    env.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+
+    osc.connect(env);
+    env.connect(sfxGain);
+    sfxGain.connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.09);
+  }
+
+  sfxExplosion() {
+    this._init();
+    if (this._ctx.state === 'suspended') this._ctx.resume();
+    const ctx = this._ctx;
+    const t   = ctx.currentTime;
+
+    // Noise burst
+    const bufLen = ctx.sampleRate * 0.25;
+    const buf    = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+    const data   = buf.getChannelData(0);
+    for (let i = 0; i < bufLen; i++) data[i] = (Math.random() * 2 - 1);
+
+    const src  = ctx.createBufferSource();
+    const filt = ctx.createBiquadFilter();
+    const env  = ctx.createGain();
+    const sfxGain = ctx.createGain();
+    sfxGain.gain.value = 0.35;
+
+    src.buffer       = buf;
+    filt.type        = 'bandpass';
+    filt.frequency.value = 300;
+    filt.Q.value     = 0.8;
+
+    env.gain.setValueAtTime(1, t);
+    env.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+
+    src.connect(filt);
+    filt.connect(env);
+    env.connect(sfxGain);
+    sfxGain.connect(ctx.destination);
+    src.start(t);
+    src.stop(t + 0.25);
+
+    // Low thud underneath
+    const thud = ctx.createOscillator();
+    const thudEnv = ctx.createGain();
+    thud.type = 'sine';
+    thud.frequency.setValueAtTime(120, t);
+    thud.frequency.exponentialRampToValueAtTime(30, t + 0.15);
+    thudEnv.gain.setValueAtTime(0.5, t);
+    thudEnv.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+    thud.connect(thudEnv);
+    thudEnv.connect(sfxGain);
+    sfxGain.connect(ctx.destination);
+    thud.start(t);
+    thud.stop(t + 0.2);
+  }
+
+  sfxDamage() {
+    this._init();
+    if (this._ctx.state === 'suspended') this._ctx.resume();
+    const ctx = this._ctx;
+    const t   = ctx.currentTime;
+
+    // Descending alarm-like tone
+    const osc = ctx.createOscillator();
+    const env = ctx.createGain();
+    const sfxGain = ctx.createGain();
+    sfxGain.gain.value = 0.28;
+
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(600, t);
+    osc.frequency.linearRampToValueAtTime(80, t + 0.3);
+
+    env.gain.setValueAtTime(0.7, t);
+    env.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+
+    osc.connect(env);
+    env.connect(sfxGain);
+    sfxGain.connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.38);
+  }
+
+  sfxGameOver() {
+    this._init();
+    if (this._ctx.state === 'suspended') this._ctx.resume();
+    const ctx = this._ctx;
+    const t   = ctx.currentTime;
+
+    // Descending jingle
+    const notes = [523.25, 392, 329.63, 261.63];
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const env = ctx.createGain();
+      const sfxGain = ctx.createGain();
+      sfxGain.gain.value = 0.22;
+      const nt = t + i * 0.18;
+
+      osc.type = 'square';
+      osc.frequency.value = freq;
+      env.gain.setValueAtTime(0.6, nt);
+      env.gain.exponentialRampToValueAtTime(0.001, nt + 0.16);
+
+      osc.connect(env);
+      env.connect(sfxGain);
+      sfxGain.connect(ctx.destination);
+      osc.start(nt);
+      osc.stop(nt + 0.18);
+    });
+  }
 }

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Sky Shooter</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Main Menu -->
+    <div id="menu-screen" class="screen active">
+      <div class="menu-content">
+        <h1 class="game-title">SKY SHOOTER</h1>
+        <p class="subtitle">Survive. Shoot. Score.</p>
+        <button id="btn-start" class="btn-primary">PLAY</button>
+        <div class="controls-hint">
+          <p>🖱️ Right click / Right button = Jump</p>
+          <p>🖱️ Left click / Left button = Shoot</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen">
+      <canvas id="game-canvas"></canvas>
+
+      <!-- HUD -->
+      <div id="hud">
+        <div id="score-display">SCORE: <span id="score-value">0</span></div>
+        <div id="status-display" class="status-alive">ALIVE</div>
+      </div>
+
+      <!-- Mobile Controls -->
+      <div id="mobile-controls">
+        <button id="btn-shoot" class="control-btn left-btn">
+          <span class="btn-icon">💥</span>
+          <span class="btn-label">SHOOT</span>
+        </button>
+        <button id="btn-jump" class="control-btn right-btn">
+          <span class="btn-icon">⬆</span>
+          <span class="btn-label">JUMP</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameover-screen" class="screen">
+      <div class="gameover-content">
+        <h2 class="gameover-title">GAME OVER</h2>
+        <div class="final-stats">
+          <div class="stat-row">
+            <span class="stat-label">SCORE</span>
+            <span class="stat-value" id="final-score">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">TIME</span>
+            <span class="stat-value" id="final-time">0s</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">DESTROYED</span>
+            <span class="stat-value" id="final-destroyed">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">BEST</span>
+            <span class="stat-value" id="best-score">0</span>
+          </div>
+        </div>
+        <button id="btn-restart" class="btn-primary">PLAY AGAIN</button>
+        <button id="btn-menu" class="btn-secondary">MENU</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

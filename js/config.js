@@ -9,11 +9,13 @@ export const CONFIG = {
   PLAYER_HEIGHT: 26,
   PLAYER_MAX_FALL: 14,
 
-  // Bullets
+  // Bullets — burst fire
   BULLET_SPEED: 20,
   BULLET_WIDTH: 28,
   BULLET_HEIGHT: 4,
-  SHOOT_COOLDOWN: 80, // ms between shots (~5-6 per second)
+  BURST_SIZE:     3,    // shots per burst
+  BURST_INTERVAL: 80,   // ms between shots within a burst
+  BURST_COOLDOWN: 333,  // ms before next burst (~3 bursts/s)
 
   // Obstacles
   OBSTACLE_WIDTH: 32,

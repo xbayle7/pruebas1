@@ -1,17 +1,17 @@
 /**
- * Second monster using a photo with black background.
+ * Third monster using a photo with black background.
  * Uses screen blending so the black disappears.
  */
-export class Monster2 {
+export class Monster3 {
   constructor(canvasW, canvasH) {
-    this.name  = 'Eduard';
+    this.name  = 'Álvaro';
     this.canvasW = canvasW;
     this.canvasH = canvasH;
 
-    this.w = 90;
-    this.h = 130;  // slightly taller — portrait photo
+    this.w = 80;
+    this.h = 135;
 
-    this.maxHp = 20;
+    this.maxHp = 18;
     this.hp    = this.maxHp;
 
     this.x = canvasW * 0.55;
@@ -28,7 +28,7 @@ export class Monster2 {
 
   _loadImage() {
     const img = new Image();
-    img.src = 'assets/monster2.png';
+    img.src = 'assets/monster3.png';
     img.onload  = () => { this._img = img; };
     img.onerror = () => { this._img = null; };
   }
@@ -64,14 +64,14 @@ export class Monster2 {
 
     if (this.hitTimer > 0) this.hitTimer--;
 
-    // Faster horizontal sweep
-    const cx  = this.canvasW * 0.62;
-    const amp = this.canvasW * 0.20;
-    this.x = cx + Math.sin(this._phase * 0.9) * amp - this.w / 2;
+    // Slower, more menacing movement
+    const cx  = this.canvasW * 0.63;
+    const amp = this.canvasW * 0.17;
+    this.x = cx + Math.sin(this._phase * 0.6) * amp - this.w / 2;
 
-    const cy   = this.canvasH * 0.40;
-    const vamp = this.canvasH * 0.30;
-    this.y = cy + Math.sin(this._phase * 1.3) * vamp - this.h / 2;
+    const cy   = this.canvasH * 0.44;
+    const vamp = this.canvasH * 0.26;
+    this.y = cy + Math.sin(this._phase * 0.9) * vamp - this.h / 2;
 
     this.y = Math.max(4, Math.min(this.canvasH - this.h - 40, this.y));
     this.x = Math.max(this.canvasW * 0.3, Math.min(this.canvasW - this.w - 8, this.x));
@@ -92,7 +92,7 @@ export class Monster2 {
       ctx.drawImage(this._img, x, y, w, h);
       ctx.globalCompositeOperation = 'source-over';
     } else {
-      ctx.fillStyle = 'rgba(255,30,120,0.8)';
+      ctx.fillStyle = 'rgba(30,80,255,0.8)';
       ctx.beginPath();
       ctx.ellipse(x + w/2, y + h*0.3, w*0.35, h*0.28, 0, 0, Math.PI * 2);
       ctx.fill();

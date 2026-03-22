@@ -13,7 +13,9 @@ export class Player {
     this.animTimer    = 0;
     this._thrustPhase = 0;
     this.muzzleFlash  = 0;
-    this.lastShot     = 0;
+    this.lastShot     = 0;      // timestamp of last individual shot
+    this.lastBurst    = -9999;  // timestamp of burst start
+    this._burstCount  = 0;      // shots fired in current burst
 
     // Invincibility after taking damage (ms)
     this.invincible = 0;
@@ -32,18 +34,40 @@ export class Player {
     return this.invincible > 0;
   }
 
-  canShoot(now) {
-    return this.alive && (now - this.lastShot >= CONFIG.SHOOT_COOLDOWN);
-  }
-
+  /**
+   * Call every frame. Returns a spawn position if a shot fires, else null.
+   * Burst logic: up to BURST_SIZE shots per burst, BURST_INTERVAL ms apart.
+   * A new burst starts only after BURST_COOLDOWN ms since the burst began.
+   */
   shoot(now) {
-    if (!this.canShoot(now)) return null;
+    if (!this.alive) return null;
+
+    const inBurst   = this._burstCount > 0 && this._burstCount < CONFIG.BURST_SIZE;
+    const burstReady = (now - this.lastBurst) >= CONFIG.BURST_COOLDOWN;
+    const shotReady  = (now - this.lastShot)  >= CONFIG.BURST_INTERVAL;
+
+    if (!inBurst && !burstReady) return null;   // waiting for burst cooldown
+    if (!shotReady) return null;                // waiting between shots
+
+    if (!inBurst) {
+      // Start a new burst
+      this.lastBurst   = now;
+      this._burstCount = 0;
+    }
+
     this.lastShot    = now;
+    this._burstCount++;
     this.muzzleFlash = 6;
     return {
       x: this.x + this.width,
       y: this.y + this.height / 2 - CONFIG.BULLET_HEIGHT / 2,
     };
+  }
+
+  /** For the on-press event: reset burst so pressing always fires a new burst immediately */
+  triggerBurst(now) {
+    this.lastBurst   = now - CONFIG.BURST_COOLDOWN;
+    this._burstCount = 0;
   }
 
   update(dt) {

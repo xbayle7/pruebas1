@@ -10,6 +10,9 @@ import { AudioManager } from './audio.js';
 import { checkBulletObstacle, checkPlayerObstacle } from './collision.js';
 import { Monster } from './monster.js';
 import { Monster2 } from './monster2.js';
+import { Monster3 } from './monster3.js';
+
+const MONSTERS = [Monster, Monster2, Monster3];
 
 const MAX_LIVES = 3;
 
@@ -19,7 +22,7 @@ export class Game {
     this.ctx    = canvas.getContext('2d');
     this.input  = input;
 
-    this.scoreEl = document.getElementById('score-value');
+    this.timerEl = document.getElementById('timer-value');
     this.levelEl = document.getElementById('level-value');
     this.livesEl = document.getElementById('lives-value');
 
@@ -72,14 +75,10 @@ export class Game {
       }
     });
 
-    // Shoot: fires on press; game loop also checks isShootHeld for hold-to-fire
+    // Shoot: press triggers a new burst immediately
     this.input.onShoot(() => {
       if (this._state !== 'running') return;
-      const pos = this.player.shoot(this._time);
-      if (pos) {
-        this.bullets.spawn(pos.x, pos.y);
-        this._audio.sfxShoot();
-      }
+      this.player.triggerBurst(this._time);
     });
 
     this.input.onPause(() => {
@@ -157,8 +156,8 @@ export class Game {
     );
     this.difficulty = (this.gameSpeed - CONFIG.SPEED_BASE) / (CONFIG.SPEED_MAX - CONFIG.SPEED_BASE);
 
-    // Hold-to-shoot (no hold-to-jump — single impulse only)
-    if (this.input.isShootHeld) {
+    // Burst fire — runs every frame; shoot() handles burst timing
+    {
       const pos = this.player.shoot(this._time);
       if (pos) {
         this.bullets.spawn(pos.x, pos.y);
@@ -191,16 +190,14 @@ export class Game {
           bb.y < mb.y + mb.h && bb.y + bb.h > mb.y) {
         b.alive = false;
         const killed = this.monster.takeDamage();
-        this._audio.sfxExplosion();
+        this._audio.sfxGroan();
+        if (killed) this._audio.sfxExplosion();
         this.particles.emit(mb.x + mb.w/2, mb.y + mb.h/2, '#ff4422', killed ? 30 : 10);
         if (killed) {
           this.score.addDestroy();
           this.renderer.flash('#ff8800', 0.4);
-          // Swap monster on next respawn
-          this._monsterIdx = (this._monsterIdx + 1) % 2;
-          this.monster = this._monsterIdx === 0
-            ? new Monster(this._logicalW, this._logicalH)
-            : new Monster2(this._logicalW, this._logicalH);
+          this._monsterIdx = (this._monsterIdx + 1) % MONSTERS.length;
+          this.monster = new MONSTERS[this._monsterIdx](this._logicalW, this._logicalH);
         }
       }
     }
@@ -266,7 +263,12 @@ export class Game {
   }
 
   _updateHUD() {
-    if (this.scoreEl) this.scoreEl.textContent = this.score.score;
+    if (this.timerEl) {
+      const secs = Math.floor(this._time / 1000);
+      const m    = Math.floor(secs / 60);
+      const s    = secs % 60;
+      this.timerEl.textContent = `${m}:${String(s).padStart(2, '0')}`;
+    }
     if (this.levelEl) this.levelEl.textContent = this.level;
     if (this.livesEl) {
       this.livesEl.textContent = '♥'.repeat(this.lives) + '♡'.repeat(MAX_LIVES - this.lives);

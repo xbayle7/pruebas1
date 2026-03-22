@@ -329,4 +329,51 @@ export class AudioManager {
       osc.stop(nt + 0.18);
     });
   }
+
+  /** Pain/groan sound — played when a monster is hit */
+  sfxGroan() {
+    this._init();
+    if (this._ctx.state === 'suspended') this._ctx.resume();
+    const ctx = this._ctx;
+    const t   = ctx.currentTime;
+
+    // Voiced "augh" — sawtooth with strong downward pitch slide + vibrato LFO
+    const osc     = ctx.createOscillator();
+    const lfo     = ctx.createOscillator();
+    const lfoGain = ctx.createGain();
+    const filt    = ctx.createBiquadFilter();
+    const env     = ctx.createGain();
+    const sfxGain = ctx.createGain();
+    sfxGain.gain.value = 0.22;
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(380, t);
+    osc.frequency.linearRampToValueAtTime(140, t + 0.35);
+
+    // Vibrato
+    lfo.type = 'sine';
+    lfo.frequency.value = 7;
+    lfoGain.gain.value  = 18;
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc.frequency);
+
+    // Bandpass to shape vowel
+    filt.type = 'bandpass';
+    filt.frequency.value = 900;
+    filt.Q.value = 1.2;
+
+    env.gain.setValueAtTime(0.001, t);
+    env.gain.linearRampToValueAtTime(0.9, t + 0.04);
+    env.gain.setValueAtTime(0.9, t + 0.15);
+    env.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+
+    osc.connect(filt);
+    filt.connect(env);
+    env.connect(sfxGain);
+    sfxGain.connect(this._master);
+    lfo.start(t);
+    lfo.stop(t + 0.41);
+    osc.start(t);
+    osc.stop(t + 0.41);
+  }
 }

@@ -8,6 +8,7 @@ import { ScoreManager } from './score.js';
 import { Renderer } from './renderer.js';
 import { AudioManager } from './audio.js';
 import { checkBulletObstacle, checkPlayerObstacle } from './collision.js';
+import { Monster } from './monster.js';
 
 const MAX_LIVES = 3;
 
@@ -57,6 +58,7 @@ export class Game {
     this.difficulty = 0;
     this.lives      = MAX_LIVES;
     this.level      = 0;
+    this.monster    = new Monster(this._logicalW, this._logicalH);
   }
 
   _bindInput() {
@@ -164,6 +166,35 @@ export class Game {
       if (!obs.scored && obs.x + obs.width < this.player.x) {
         obs.scored = true;
         this.level++;
+      }
+    }
+
+    // Monster update & bullet collision
+    this.monster.update(dt, this.player.y, this.gameSpeed);
+    for (const b of this.bullets.bullets) {
+      if (!b.alive) continue;
+      const bb = b.getBounds();
+      const mb = this.monster.getBounds();
+      if (bb.x < mb.x + mb.w && bb.x + bb.w > mb.x &&
+          bb.y < mb.y + mb.h && bb.y + bb.h > mb.y) {
+        b.alive = false;
+        const killed = this.monster.takeDamage();
+        this._audio.sfxExplosion();
+        this.particles.emit(mb.x + mb.w/2, mb.y + mb.h/2, '#ff4422', killed ? 30 : 10);
+        if (killed) {
+          this.score.addDestroy();
+          this.renderer.flash('#ff8800', 0.4);
+        }
+      }
+    }
+
+    // Monster touches player → damage
+    if (!this.player.isInvincible() && !this.monster.dead) {
+      const pb = this.player.getBounds();
+      const mb = this.monster.getBounds();
+      if (pb.x < mb.x + mb.w && pb.x + pb.w > mb.x &&
+          pb.y < mb.y + mb.h && pb.y + pb.h > mb.y) {
+        this._takeDamage();
       }
     }
 
@@ -284,6 +315,7 @@ export class Game {
     this.obstacles.draw(ctx, this._time);
     this.bullets.draw(ctx);
     this.particles.draw(ctx);
+    this.monster.draw(ctx);
     this.player.draw(ctx);
     this._drawFloor(ctx, w, h);
     this.renderer.drawFlash();

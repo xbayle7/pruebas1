@@ -35,4 +35,5 @@ export const CONFIG = {
   // Visual
   BG_PARALLAX_LAYERS: 4,
   PARTICLE_MAX: 200,
+  FLOOR_HEIGHT: 24,
 };

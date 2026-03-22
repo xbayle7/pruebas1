@@ -213,6 +213,48 @@ export class Game {
     }
   }
 
+  _drawFloor(ctx, w, h) {
+    const fh = CONFIG.FLOOR_HEIGHT;
+    const fy = h - fh;
+
+    // Floor fill
+    const grad = ctx.createLinearGradient(0, fy, 0, h);
+    grad.addColorStop(0,   '#0a1a2e');
+    grad.addColorStop(0.4, '#0d2040');
+    grad.addColorStop(1,   '#050f1a');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, fy, w, fh);
+
+    // Top edge glow line
+    const t = this._time * 0.002;
+    const pulse = 0.6 + 0.4 * Math.sin(t * 2);
+    ctx.strokeStyle = `rgba(0,210,255,${pulse})`;
+    ctx.lineWidth   = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, fy);
+    ctx.lineTo(w, fy);
+    ctx.stroke();
+
+    // Inner glow band
+    const glow = ctx.createLinearGradient(0, fy, 0, fy + fh * 0.5);
+    glow.addColorStop(0,   `rgba(0,200,255,${0.18 * pulse})`);
+    glow.addColorStop(1,   'rgba(0,200,255,0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, fy, w, fh * 0.5);
+
+    // Grid lines on floor
+    ctx.strokeStyle = `rgba(0,150,200,${0.12 * pulse})`;
+    ctx.lineWidth   = 1;
+    const spacing = 48;
+    const offset  = (this._time * this.gameSpeed * 0.05) % spacing;
+    for (let x = -offset; x < w + spacing; x += spacing) {
+      ctx.beginPath();
+      ctx.moveTo(x, fy);
+      ctx.lineTo(x, h);
+      ctx.stroke();
+    }
+  }
+
   _draw() {
     const ctx = this.ctx;
     const w   = this._logicalW;
@@ -221,6 +263,7 @@ export class Game {
     ctx.setTransform(window.devicePixelRatio || 1, 0, 0, window.devicePixelRatio || 1, 0, 0);
 
     this.background.draw(ctx, this._time);
+    this._drawFloor(ctx, w, h);
     this.obstacles.draw(ctx, this._time);
     this.bullets.draw(ctx);
     this.particles.draw(ctx);

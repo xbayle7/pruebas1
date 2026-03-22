@@ -54,10 +54,11 @@ export class Player {
     if (this.vy > CONFIG.PLAYER_MAX_FALL) this.vy = CONFIG.PLAYER_MAX_FALL;
     this.y += this.vy * s;
 
-    if (this.y < 0)                           { this.y = 0; this.vy = 0; }
-    if (this.y + this.height > this.canvasHeight) {
-      this.y = this.canvasHeight - this.height;
-      this.die();
+    const floor = this.canvasHeight - CONFIG.FLOOR_HEIGHT;
+    if (this.y < 0)                        { this.y = 0; this.vy = 0; }
+    if (this.y + this.height > floor) {
+      this.y  = floor - this.height;
+      this.vy = 0;
     }
 
     if (this.invincible > 0)   this.invincible  -= dt;

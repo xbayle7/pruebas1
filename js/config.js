@@ -13,7 +13,7 @@ export const CONFIG = {
   BULLET_SPEED: 20,
   BULLET_WIDTH: 28,
   BULLET_HEIGHT: 4,
-  SHOOT_COOLDOWN: 0,   // unlimited
+  SHOOT_COOLDOWN: 180, // ms between shots (~5-6 per second)
 
   // Obstacles
   OBSTACLE_WIDTH: 32,

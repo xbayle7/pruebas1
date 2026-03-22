@@ -40,7 +40,7 @@ export class AudioManager {
     if (this._ctx) return;
     this._ctx = new (window.AudioContext || window.webkitAudioContext)();
     this._master = this._ctx.createGain();
-    this._master.gain.value = 0.13;
+    this._master.gain.value = this._muted ? 0 : 0.13;
     this._master.connect(this._ctx.destination);
   }
 
@@ -63,9 +63,6 @@ export class AudioManager {
   pause() {
     this._running = false;
     clearTimeout(this._timerId);
-    if (this._master) {
-      this._master.gain.setTargetAtTime(0, this._ctx.currentTime, 0.05);
-    }
   }
 
   get muted() { return this._muted; }
@@ -81,9 +78,6 @@ export class AudioManager {
   resume() {
     if (!this._ctx) return;
     if (this._ctx.state === 'suspended') this._ctx.resume();
-    if (!this._muted) {
-      this._master.gain.setTargetAtTime(0.13, this._ctx.currentTime, 0.05);
-    }
     this._running  = true;
     this._nextBeat = this._ctx.currentTime + 0.05;
     this._tick();

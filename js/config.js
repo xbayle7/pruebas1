@@ -1,42 +1,38 @@
-/**
- * Game configuration constants.
- * Centralised here for easy tuning and future feature integration.
- */
 export const CONFIG = {
   // Physics
-  GRAVITY: 0.45,
-  JUMP_FORCE: -9,
+  GRAVITY: 0.48,
+  JUMP_FORCE: -10,
 
   // Player
   PLAYER_X: 120,
-  PLAYER_WIDTH: 36,
-  PLAYER_HEIGHT: 28,
-  PLAYER_MAX_FALL: 12,
+  PLAYER_WIDTH: 42,
+  PLAYER_HEIGHT: 26,
+  PLAYER_MAX_FALL: 14,
 
   // Bullets
-  BULLET_SPEED: 14,
-  BULLET_WIDTH: 18,
-  BULLET_HEIGHT: 6,
-  SHOOT_COOLDOWN: 300, // ms
+  BULLET_SPEED: 20,
+  BULLET_WIDTH: 28,
+  BULLET_HEIGHT: 4,
+  SHOOT_COOLDOWN: 0,   // unlimited
 
   // Obstacles
-  OBSTACLE_WIDTH: 28,
-  GAP_MIN: 130,
-  GAP_MAX: 200,
-  SPAWN_INTERVAL_BASE: 1800,  // ms
-  SPAWN_INTERVAL_MIN: 800,
-  DYNAMIC_OBSTACLE_CHANCE: 0.45,  // 0–1
+  OBSTACLE_WIDTH: 32,
+  GAP_MIN: 140,
+  GAP_MAX: 210,
+  SPAWN_INTERVAL_BASE: 1800,
+  SPAWN_INTERVAL_MIN: 700,
+  DYNAMIC_OBSTACLE_CHANCE: 0.45,
 
   // Difficulty
   SPEED_BASE: 3.5,
-  SPEED_MAX: 9,
-  SPEED_INCREMENT: 0.0004,   // per frame
+  SPEED_MAX: 10,
+  SPEED_INCREMENT: 0.0004,
 
   // Scoring
   SCORE_PER_SECOND: 1,
   SCORE_PER_DESTROY: 50,
 
   // Visual
-  BG_PARALLAX_LAYERS: 3,
-  PARTICLE_MAX: 80,
+  BG_PARALLAX_LAYERS: 4,
+  PARTICLE_MAX: 200,
 };

@@ -1,12 +1,12 @@
 /**
  * Centralised input manager.
- * Captures keyboard, mouse and touch events.
- * Exposes simple boolean state flags.
+ * – Fires callbacks on press
+ * – Exposes isShootHeld / isJumpHeld for continuous input in the game loop
  */
 export class InputManager {
   constructor(canvas, btnJump, btnShoot) {
-    this.jumpPressed  = false;
-    this.shootPressed = false;
+    this.isShootHeld = false;
+    this.isJumpHeld  = false;
 
     this._jumpCallbacks  = [];
     this._shootCallbacks = [];
@@ -27,55 +27,98 @@ export class InputManager {
   _firePause() { this._pauseCallbacks.forEach(fn => fn()); }
 
   _bindCanvas(canvas) {
-    // Mouse: left = shoot, right = jump
+    // Mouse
     canvas.addEventListener('mousedown', e => {
       e.preventDefault();
-      if (e.button === 2) this._fireJump();
-      if (e.button === 0) this._fireShoot();
+      if (e.button === 2) { this.isJumpHeld  = true; this._fireJump(); }
+      if (e.button === 0) { this.isShootHeld = true; this._fireShoot(); }
+    });
+    canvas.addEventListener('mouseup', e => {
+      if (e.button === 2) this.isJumpHeld  = false;
+      if (e.button === 0) this.isShootHeld = false;
     });
     canvas.addEventListener('contextmenu', e => e.preventDefault());
 
-    // Touch: left 55% of canvas = shoot, right 45% = jump
+    // Touch: left 55% = shoot, right 45% = jump
+    const activeTouches = { shoot: new Set(), jump: new Set() };
+
     canvas.addEventListener('touchstart', e => {
       e.preventDefault();
-      for (const touch of e.changedTouches) {
+      for (const t of e.changedTouches) {
         const rect = canvas.getBoundingClientRect();
-        const relX = touch.clientX - rect.left;
-        if (relX < rect.width * 0.55) {
-          this._fireShoot();
+        if ((t.clientX - rect.left) < rect.width * 0.55) {
+          activeTouches.shoot.add(t.identifier);
+          if (!this.isShootHeld) { this.isShootHeld = true; this._fireShoot(); }
         } else {
-          this._fireJump();
+          activeTouches.jump.add(t.identifier);
+          if (!this.isJumpHeld) { this.isJumpHeld = true; this._fireJump(); }
         }
       }
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', e => {
+      e.preventDefault();
+      for (const t of e.changedTouches) {
+        activeTouches.shoot.delete(t.identifier);
+        activeTouches.jump.delete(t.identifier);
+      }
+      if (activeTouches.shoot.size === 0) this.isShootHeld = false;
+      if (activeTouches.jump.size  === 0) this.isJumpHeld  = false;
+    }, { passive: false });
+
+    canvas.addEventListener('touchcancel', e => {
+      for (const t of e.changedTouches) {
+        activeTouches.shoot.delete(t.identifier);
+        activeTouches.jump.delete(t.identifier);
+      }
+      if (activeTouches.shoot.size === 0) this.isShootHeld = false;
+      if (activeTouches.jump.size  === 0) this.isJumpHeld  = false;
     }, { passive: false });
   }
 
   _bindKeyboard() {
+    const JUMP_KEYS  = new Set(['Space', 'ArrowUp', 'KeyW']);
+    const SHOOT_KEYS = new Set(['KeyX', 'KeyZ', 'ControlLeft', 'ShiftLeft', 'KeyF']);
+
     window.addEventListener('keydown', e => {
-      if (e.code === 'Space' || e.code === 'ArrowUp') {
+      if (JUMP_KEYS.has(e.code)) {
         e.preventDefault();
-        this._fireJump();
+        if (!this.isJumpHeld) { this.isJumpHeld = true; this._fireJump(); }
       }
-      if (e.code === 'KeyZ' || e.code === 'ControlLeft' || e.code === 'ShiftLeft') {
+      if (SHOOT_KEYS.has(e.code)) {
         e.preventDefault();
-        this._fireShoot();
+        if (!this.isShootHeld) { this.isShootHeld = true; this._fireShoot(); }
       }
       if (e.code === 'Escape') {
         e.preventDefault();
         this._firePause();
       }
     });
+
+    window.addEventListener('keyup', e => {
+      if (JUMP_KEYS.has(e.code))  this.isJumpHeld  = false;
+      if (SHOOT_KEYS.has(e.code)) this.isShootHeld = false;
+    });
   }
 
   _bindButtons(btnJump, btnShoot) {
     if (!btnJump || !btnShoot) return;
 
-    const prevent = e => e.preventDefault();
+    const startJump  = e => { e.preventDefault(); if (!this.isJumpHeld)  { this.isJumpHeld  = true; this._fireJump(); } };
+    const startShoot = e => { e.preventDefault(); if (!this.isShootHeld) { this.isShootHeld = true; this._fireShoot(); } };
+    const endJump    = e => { e.preventDefault(); this.isJumpHeld  = false; };
+    const endShoot   = e => { e.preventDefault(); this.isShootHeld = false; };
 
-    btnJump.addEventListener('touchstart',  e => { prevent(e); this._fireJump(); },  { passive: false });
-    btnJump.addEventListener('mousedown',   e => { prevent(e); this._fireJump(); });
+    btnJump.addEventListener('touchstart',  startJump,  { passive: false });
+    btnJump.addEventListener('touchend',    endJump,    { passive: false });
+    btnJump.addEventListener('touchcancel', endJump,    { passive: false });
+    btnJump.addEventListener('mousedown',   startJump);
+    btnJump.addEventListener('mouseup',     endJump);
 
-    btnShoot.addEventListener('touchstart', e => { prevent(e); this._fireShoot(); }, { passive: false });
-    btnShoot.addEventListener('mousedown',  e => { prevent(e); this._fireShoot(); });
+    btnShoot.addEventListener('touchstart',  startShoot, { passive: false });
+    btnShoot.addEventListener('touchend',    endShoot,   { passive: false });
+    btnShoot.addEventListener('touchcancel', endShoot,   { passive: false });
+    btnShoot.addEventListener('mousedown',   startShoot);
+    btnShoot.addEventListener('mouseup',     endShoot);
   }
 }

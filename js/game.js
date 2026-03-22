@@ -139,6 +139,15 @@ export class Game {
     );
     this.difficulty = (this.gameSpeed - CONFIG.SPEED_BASE) / (CONFIG.SPEED_MAX - CONFIG.SPEED_BASE);
 
+    // Continuous input: hold to shoot / hold to jump
+    if (this.input.isShootHeld) {
+      const pos = this.player.shoot(this._time);
+      if (pos) this.bullets.spawn(pos.x, pos.y);
+    }
+    if (this.input.isJumpHeld) {
+      this.player.jump();
+    }
+
     this.background.update(this.gameSpeed);
     this.player.update(dt);
     this.obstacles.update(dt, this.gameSpeed, this.difficulty);
